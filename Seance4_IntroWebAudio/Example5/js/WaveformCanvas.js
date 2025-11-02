@@ -120,49 +120,54 @@ export class WaveformCanvas {
 
   // ============================ Trim Bar Logic ============================
   onDown(e) {
-    if (!this.buffer) return;
-    const rect = this.overlay.getBoundingClientRect();
-    const x = e.clientX - rect.left;
+  if (!this.buffer) return;
+  const rect = this.overlay.getBoundingClientRect();
+  const x = e.clientX - rect.left;
 
-    const x1 = this.secToX(this.startSec);
-    const x2 = this.secToX(this.endSec);
-    const grabRange = 8;
+  const x1 = this.secToX(this.startSec);
+  const x2 = this.secToX(this.endSec);
+  const grabRange = 8;
 
-    // Détection de clic sur les barres
-    if (Math.abs(x - x1) <= grabRange) {
-      this.dragging = 'start';
-    } else if (Math.abs(x - x2) <= grabRange) {
-      this.dragging = 'end';
-    } else if (x > x1 && x < x2) {
-      this.dragging = 'move';
-      this.dragOffset = x - x1;
-      this.windowWidth = x2 - x1;
-    } else {
-      this.dragging = null;
-    }
+  // Détecte le curseur le plus proche du clic
+  const distStart = Math.abs(x - x1);
+  const distEnd = Math.abs(x - x2);
+
+  if (distStart <= grabRange && distStart <= distEnd) {
+    this.dragging = 'start';
+  } else if (distEnd <= grabRange) {
+    this.dragging = 'end';
+  } else if ((x1 < x2 && x > x1 && x < x2) || (x1 > x2 && x > x2 && x < x1)) {
+    this.dragging = 'move';
+    this.dragOffset = x - x1;
+    this.windowWidth = x2 - x1;
+  } else {
+    this.dragging = null;
+  }
+}
+
+onMove(e) {
+  if (!this.dragging || !this.buffer) return;
+
+  const rect = this.overlay.getBoundingClientRect();
+  const x = Math.max(0, Math.min(this.overlay.width, e.clientX - rect.left));
+
+  if (this.dragging === 'start') {
+    const s = this.xToSec(x);
+    this.startSec = Math.max(0, Math.min(s, this.buffer.duration));
+  } else if (this.dragging === 'end') {
+    const s = this.xToSec(x);
+    this.endSec = Math.max(0, Math.min(s, this.buffer.duration));
+  } else if (this.dragging === 'move') {
+    const nx = x - this.dragOffset;
+    const deltaSec = (nx / this.overlay.width) * this.buffer.duration;
+    const widthSec = (this.windowWidth / this.overlay.width) * this.buffer.duration;
+    this.startSec = Math.max(0, Math.min(deltaSec, this.buffer.duration));
+    this.endSec = Math.max(0, Math.min(deltaSec + widthSec, this.buffer.duration));
   }
 
-  onMove(e) {
-    if (!this.dragging || !this.buffer) return;
-
-    const rect = this.overlay.getBoundingClientRect();
-    const x = Math.max(0, Math.min(this.overlay.width, e.clientX - rect.left));
-
-    if (this.dragging === 'start') {
-      const s = this.xToSec(x);
-      this.startSec = Math.min(s, this.endSec - 0.01);
-    } else if (this.dragging === 'end') {
-      const s = this.xToSec(x);
-      this.endSec = Math.max(s, this.startSec + 0.01);
-    } else if (this.dragging === 'move') {
-      const nx = Math.max(0, Math.min(this.overlay.width - this.windowWidth, x - this.dragOffset));
-      this.startSec = this.xToSec(nx);
-      this.endSec = this.xToSec(nx + this.windowWidth);
-    }
-
-    this.drawOverlay();
-    this.emit();
-  }
+  this.drawOverlay();
+  this.emit();
+}
 
   onUp() {
     this.dragging = null;

@@ -83,70 +83,71 @@ export class SamplerGUI {
   }
 
   // ====================== LORSQU’ON CLIQUE SUR UN PAD ======================
-  async onPad(i) {
-    const buf = this.engine.buffers[i];
+async onPad(i, { play = true } = {}) {
+  const buf = this.engine.buffers[i];
 
-    // --- LOGIQUE D'ENREGISTREMENT ---
-    if (this.isRecording) {
-      const timestamp = this.engine.context.currentTime - this.recordingStartTime;
-      // Enregistre l'événement: { index du pad, temps relatif }
-      this.recordedSequence.push({ index: i, time: timestamp });
-      this.els.status.textContent = `🔴 RECORDING: ${this.recordedSequence.length} events`;
+  // --- LOGIQUE D'ENREGISTREMENT ---
+  if (this.isRecording) {
+    const timestamp = this.engine.context.currentTime - this.recordingStartTime;
+    // Enregistre l'événement: { index du pad, temps relatif }
+    this.recordedSequence.push({ index: i, time: timestamp });
+    this.els.status.textContent = `🔴 RECORDING: ${this.recordedSequence.length} events`;
+  }
+  // ------------------------------------------
+
+  if (!buf) {
+    const pad = this.pads[i];
+    if (pad) {
+      pad.disabled = true;
+      pad.classList.add('loading');
     }
-    // ------------------------------------------
 
-    if (!buf) {
-      const pad = this.pads[i];
+    const url = this.els.urls[i];
+    try {
+      const loaded = await this.engine.loadOne(url, i, (idx, p) =>
+        this.setPadProgress(idx, p)
+      );
+      this.engine.buffers[i] = loaded;
+      this.markLoaded(i);
       if (pad) {
-        pad.disabled = true;
-        pad.classList.add('loading');
+        pad.classList.remove('loading');
+        pad.classList.add('loaded');
       }
-
-      const url = this.els.urls[i];
-      try {
-        const loaded = await this.engine.loadOne(url, i, (idx, p) =>
-          this.setPadProgress(idx, p)
-        );
-        this.engine.buffers[i] = loaded;
-        this.markLoaded(i);
-        if (pad) {
-          pad.classList.remove('loading');
-          pad.classList.add('loaded');
-        }
-      } catch (err) {
-        this.markError(i, String(err));
-        if (pad) {
-          pad.classList.remove('loading');
-          pad.classList.add('failed');
-        }
-        return;
+    } catch (err) {
+      this.markError(i, String(err));
+      if (pad) {
+        pad.classList.remove('loading');
+        pad.classList.add('failed');
       }
+      return;
     }
+  }
 
-    const finalBuf = this.engine.buffers[i];
-    if (!finalBuf) return;
+  const finalBuf = this.engine.buffers[i];
+  if (!finalBuf) return;
 
-    // Affiche/sélectionne la waveform du pad si on n'est pas en mode enregistrement pur
-    if (!this.isRecording) {
-        this.currentIndex = i;
-        this.setActivePad(i);
+  // Affiche/sélectionne la waveform du pad si on n'est pas en mode enregistrement pur
+  if (!this.isRecording) {
+    this.currentIndex = i;
+    this.setActivePad(i);
 
-        const url = this.els.urls[i] || `pad ${i + 1}`;
-        this.els.currentName.textContent = url.split('/').pop() || url;
+    const url = this.els.urls[i] || `pad ${i + 1}`;
+    this.els.currentName.textContent = url.split('/').pop() || url;
 
-        const t =
-            this.trims.get(i) || { startSec: 0, endSec: finalBuf.duration };
-        this.waveform.setBuffer(finalBuf, t);
+    const t = this.trims.get(i) || { startSec: 0, endSec: finalBuf.duration };
+    this.waveform.setBuffer(finalBuf, t);
 
-        this.els.btnPlay.disabled = this.els.btnStop.disabled = false;
-    }
-    
-    // Joue le son directement
+    this.els.btnPlay.disabled = this.els.btnStop.disabled = false;
+  }
+
+  // Joue le son uniquement si play = true
+  if (play) {
     const { startSec, endSec } =
       this.trims.get(i) || { startSec: 0, endSec: finalBuf.duration };
-      
     this.engine.trigger(i, { startSec, endSec });
   }
+}
+
 
   // ====================== GESTION DE LA LECTURE ======================
   playCurrent() {
@@ -509,13 +510,17 @@ export class SamplerGUI {
   }
   
   deleteSequence(id) {
-    const initialLength = this.sequences.length;
-    this.sequences = this.sequences.filter(s => s.id !== id);
-    
-    if (this.sequences.length < initialLength) {stop
-        this.els.status.textContent = `Sequence ${id} deleted.`;
-        this.renderSequences();
-    }
-  }
+    const index = this.sequences.findIndex(s => s.id === id);
+    if (index === -1) return;
 
+    const deleted = this.sequences.splice(index, 1)[0];
+    this.els.status.textContent = `${deleted.name} deleted.`;
+
+    // Si tu veux renuméroter les séquences pour que ce soit 1, 2, 3…
+    this.sequences.forEach((s, i) => {
+        s.name = `Sequence ${i + 1} (${s.events.length} hits)`;
+    });
+
+    this.renderSequences();
+}
 }
