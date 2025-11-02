@@ -1,45 +1,24 @@
-// src/app.mjs — corrigé complet
+// src/app.mjs — corrigé complet et fonctionnel
 import express from "express";
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "node:url";
-
 import crypto from "crypto";
 import multer from "multer";
+import cors from "cors"; // ✅ import cors avant utilisation
 
-// import utility functions from utils.mjs
+// import utility functions
 import {
   slugify, safePresetPath, fileExists,
   readJSON, writeJSON, listPresetFiles, validatePreset
 } from "./utils.mjs";
 
+// --------- Création de l'app Express ---------
 export const app = express();
+app.use(cors()); // ✅ on peut maintenant l'utiliser
 app.use(express.json({ limit: "2mb" }));
 
-// configure multer for file uploads
-// storage is diskStorage with destination and filename functions
-// multer means "multipart/form-data" which is used for file uploads
-// Before HTML5 it was not possible to upload files with AJAX easily
-// so we use a form with enctype="multipart/form-data" and method="POST"
-// The form can be submitted with JavaScript (e.g., fetch API) or directly by the browser
-const upload = multer({
-  storage: multer.diskStorage({
-    // cb is the callback to indicate where to store the file
-    destination: async (req, file, cb) => {
-      const folder = req.params.folder || "";
-      const destDir = path.join(DATA_DIR, folder);
-      await fs.mkdir(destDir, { recursive: true }).catch(() => {});
-      cb(null, destDir);
-    },
-    filename: (req, file, cb) => {
-      // Use original filename
-      cb(null, file.originalname);
-    }
-  }),
-  limits: { fileSize: 10 * 1024 * 1024 } // limit files to 10MB
-});
-
-// --------- Cross-platform paths (Mac/Linux/Windows) ---------
+// --------- Cross-platform paths ---------
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 
@@ -53,48 +32,39 @@ export const DATA_DIR = process.env.DATA_DIR
   ? path.resolve(process.env.DATA_DIR)
   : path.join(PUBLIC_DIR, "presets");
 
-// No decodeURIComponent needed anymore; these are file system paths
+// --------- Multer config pour upload ---------
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: async (req, file, cb) => {
+      const folder = req.params.folder || "";
+      const destDir = path.join(DATA_DIR, folder);
+      await fs.mkdir(destDir, { recursive: true }).catch(() => {});
+      cb(null, destDir);
+    },
+    filename: (req, file, cb) => cb(null, file.originalname)
+  }),
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB
+});
 
-
-// Defines where static files are located, for example the file 
-// data/presets/Basic Kit/kick.wav
-// will be accessible at http://localhost:3000/presets/Basic%20Kit/kick.wav
-// The file PUBLIC_DIR/index.html will be served at http://localhost:3000/ or 
-// http://localhost:3000/index.html
-// app.use should use a path that works on unix and windows
+// --------- Servir les fichiers statiques ---------
 app.use(express.static(PUBLIC_DIR));
 
-// Ensure data dir exists at startup (best-effort)
+// S'assurer que le dossier data existe
 await fs.mkdir(DATA_DIR, { recursive: true }).catch(() => {});
 
-// ------- Routes -------
-// This is where we define the API endpoints (also called web services or routes)
-// Each route has a method (get, post, put, patch, delete) and a path (e.g., /api/presets)
-// The handler function takes the request (req), response (res), and next (for error handling) as parameters
+// --------- Routes ---------
 
-// Simple health check endpoint, this is generally the first endpoint to test
+// Health check
 app.get("/api/health", (_req, res) => res.json({ ok: true, now: new Date().toISOString() }));
 
 // GET list/search
 app.get("/api/presets", async (req, res, next) => {
   try {
-    // req.query contains optional parameters: q (text search), type (filter by type), factory (true/false)
-    // that appear in the URI like that : /api/presets?q=kick&type=drum&factory=true
-    // the javascript syntax in the following like uses the JavaScript "destructuring" assignment
     const { q, type, factory } = req.query;
     const files = await listPresetFiles();
-
-    // Promise.all is used to read all JSON files in parallel and in a non-blocking way
-    // This improves performance when dealing with multiple files
-    // The syntax of Promise.all is a bit tricky: we create an array of promises
-    // by mapping each filename to a readJSON call, and then we wait for all of them to complete
     let items = await Promise.all(files.map((f) => readJSON(path.join(DATA_DIR, f))));
 
-    // Apply filters
-    if (type) {
-      const t = String(type).toLowerCase();
-      items = items.filter((p) => p?.type?.toLowerCase() === t);
-    }
+    if (type) items = items.filter((p) => p?.type?.toLowerCase() === String(type).toLowerCase());
     if (factory !== undefined) {
       const want = String(factory) === "true";
       items = items.filter((p) => Boolean(p?.isFactoryPresets) === want);
@@ -103,43 +73,38 @@ app.get("/api/presets", async (req, res, next) => {
       const needle = String(q).toLowerCase();
       items = items.filter((p) => {
         const inName = p?.name?.toLowerCase().includes(needle);
-        const inSamples = Array.isArray(p?.samples) && p.samples.some((s) =>
-          s && (s.name?.toLowerCase().includes(needle) || s.url?.toLowerCase().includes(needle))
-        );
+        const inSamples = Array.isArray(p?.samples) &&
+          p.samples.some((s) =>
+            s && (s.name?.toLowerCase().includes(needle) || s.url?.toLowerCase().includes(needle))
+          );
         return inName || inSamples;
       });
     }
 
-    // Return the filtered list. the.json method sets the Content-Type header and stringifies the object
     res.json(items);
   } catch (e) { next(e); }
 });
 
-// GET one preset by name or slug. slug means a URL-friendly version of the name
+// GET un preset
 app.get("/api/presets/:name", async (req, res, next) => {
   try {
     const file = safePresetPath(req.params.name);
-    console.log("Fetching preset file:", file);
     if (!(await fileExists(file))) return res.status(404).json({ error: "Preset not found" });
     res.json(await readJSON(file));
   } catch (e) { next(e); }
 });
 
-// POST for creating a new preset
+// POST nouveau preset
 app.post("/api/presets", async (req, res, next) => {
   try {
-    // explanation of ?? below: if body is null or undefined, use empty object
     const preset = req.body ?? {};
-
-    // validate the received preset object
     const errs = validatePreset(preset);
     if (errs.length) return res.status(400).json({ errors: errs });
 
-    // check if a preset with the same name already exists
     const file = safePresetPath(preset.name);
-    if (await fileExists(file)) return res.status(409).json({ error: "A preset with this name already exists" });
+    if (await fileExists(file))
+      return res.status(409).json({ error: "A preset with this name already exists" });
 
-    // Add metadata and save the preset in a json file
     const now = new Date().toISOString();
     const withMeta = {
       id: preset.id || crypto.randomUUID(),
@@ -149,51 +114,25 @@ app.post("/api/presets", async (req, res, next) => {
       name: preset.name,
     };
     await writeJSON(file, withMeta);
-
-    // return the created preset
     res.status(201).json(withMeta);
   } catch (e) { next(e); }
 });
 
-// POST route for uploading audio sample files (.wav, .mp3 etc./) 
-// This route will take as a parameter the sample/folder name where to store the file
-// and the file will be available at http://localhost:3000/presets/:folder/:filename
-// we can add multiple files with multer. 16 below is the max number of files accepted
-// NOTE: THIS CODE IS INCOMPLETE: a folder should be created for each preset
-// and the audio files should be stored in that folder.
-// Here, if all files (the preset json file and the audio files) are uploaded at once, they all
-// will be stored in the same folder, which is not what we want. We want:
-// the preset file in the preset folder, and the audio files in a subfolder with the same name
-// For example:
-// public/presets/Basic Kit.json
-// public/presets/Basic Kit/kick.wav
-// public/presets/Basic Kit/snare.wav
-// etc.
-// To do that, we will need to modify later both this code and the front-end code
-// We will see that in the next session
+// POST upload fichiers audio
 app.post("/api/upload/:folder", upload.array("files", 16), (req, res) => {
-  // All files are in req.files
-  if (!req.files || req.files.length === 0) {
-    return res.status(400).json({ error: "No files were uploaded." });
-  }
+  if (!req.files?.length) return res.status(400).json({ error: "No files uploaded" });
 
-  const destinationFolder = req.params.folder || "";
-  console.log(`Uploaded ${req.files.length} files to folder: ${destinationFolder}`);
-  
-  // Prepare response with file information
-  const fileInfos = req.files.map((file) => ({
-    originalName: file.originalname,
-    storedName: file.filename,
-    size: file.size,
-    url: `/presets/${req.params.folder}/${file.filename}`
+  const infos = req.files.map((f) => ({
+    originalName: f.originalname,
+    storedName: f.filename,
+    size: f.size,
+    url: `/presets/${req.params.folder}/${f.filename}`
   }));
 
-  // with the current multer setup, files are already saved in the correct folder
-  // so we just return the file information
-  res.status(201).json({ uploaded: fileInfos.length, files: fileInfos });
+  res.status(201).json({ uploaded: infos.length, files: infos });
 });
 
-// PUT for replacing or renaming a preset file completely
+// PUT remplacer un preset
 app.put("/api/presets/:name", async (req, res, next) => {
   try {
     const oldFile = safePresetPath(req.params.name);
@@ -219,7 +158,7 @@ app.put("/api/presets/:name", async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
-// PATCH partial
+// PATCH partiel
 app.patch("/api/presets/:name", async (req, res, next) => {
   try {
     const oldFile = safePresetPath(req.params.name);
@@ -242,24 +181,19 @@ app.patch("/api/presets/:name", async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
-// DELETE a preset by name
+// DELETE preset
 app.delete("/api/presets/:name", async (req, res, next) => {
   try {
     const file = safePresetPath(req.params.name);
     await fs.rm(file, { force: true });
 
-    // We should also delete the corresponding audio files in the folder with the same name
-    // get folder path and delete if exists
     const folderPath = path.join(DATA_DIR, req.params.name);
     await fs.rm(folderPath, { recursive: true, force: true }).catch(() => {});
-    
-    // 204 means No Content
-
     res.status(204).send();
   } catch (e) { next(e); }
 });
 
-// POST for seeding multiple presets at once (for testing or initial setup)
+// POST seeding
 app.post("/api/presets:seed", async (req, res, next) => {
   try {
     const arr = Array.isArray(req.body) ? req.body : null;

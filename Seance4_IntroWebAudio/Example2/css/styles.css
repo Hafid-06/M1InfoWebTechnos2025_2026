@@ -1,22 +1,169 @@
-.wrapper {
-    position: relative;
-    width: 400px;
-    height: 300px;
+/* Fichier: styles.css */
+
+/* --- 0. Base & Typographie --- */
+body {
+    /* Thème sombre, idéal pour les équipements audio */
+    font-family: 'Arial', sans-serif;
+    background-color: #1a1a1a; 
+    color: #f0f0f0; 
+    margin: 20px;
 }
 
+h1, h2 {
+    color: #00ff88; /* Couleur d'accentuation vive */
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+/* --- 1. Conteneur Waveform --- */
+.wrapper {
+    /* Vos règles existantes pour le positionnement */
+    position: relative;
+    width: 600px; /* Assurez-vous que cette largeur correspond à main.js/index.html */
+    height: 100px; /* Assurez-vous que cette hauteur correspond à main.js/index.html */
+    
+    /* Styles esthétiques */
+    margin-bottom: 20px;
+    border: 2px solid #333;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    overflow: hidden; /* Empêche les trimbars d'outrepasser si non géré par JS */
+}
+
+/* --- 2. Canvas (Vos règles de positionnement) --- */
 .wrapper canvas {
     position: absolute;
     top: 0;
     left: 0;
+    width: 100%; 
+    height: 100%;
 }
+
 #myCanvas {
-  border: 1px solid black;
-  background-color:black;
-  z-index:0;
+    /* background-color: black; est géré ici */
+    background-color: #000;
+    border: none; /* Retirer la bordure */
+    z-index: 0;
 }
 
 #myCanvasOverlay {
-  border:1px solid red;
-  position: absolute;
-  z-index:10;
+    /* Laisser le fond transparent pour voir la waveform */
+    background-color: transparent;
+    border: none; /* Retirer la bordure rouge */
+    z-index: 10;
+}
+
+/* --- 3. Contrôles généraux (Menu Déroulant & Bouton Global) --- */
+#presetSelect {
+    /* Mettre le menu déroulant sur une base sombre avec accent vert */
+    padding: 8px 12px;
+    border: 1px solid #00ff88;
+    background-color: #2a2a2a;
+    color: #f0f0f0;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    /* Rendre le bouton plus visible */
+    font-size: 1em;
+}
+
+#playButton {
+    padding: 10px 15px;
+    border: 1px solid #00ff88;
+    background-color: #2a2a2a;
+    color: #00ff88;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+#playButton:hover:not([disabled]) {
+    background-color: #00ff88;
+    color: #1a1a1a;
+}
+
+#playButton[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #2a2a2a;
+    color: #666;
+}
+
+/* --- 4. Grille de Pads (Matrice) --- */
+#multi-buttons {
+    /* Le conteneur de la grille */
+    width: 480px; /* Ajusté pour une meilleure proportion */
+    margin-top: 30px;
+    padding: 15px;
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.7);
+    /* Les styles de grille (display: grid; etc.) sont laissés dans samplergui.js */
+}
+
+#multi-buttons > div {
+    /* Le wrap qui contient le pad et le label */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#multi-buttons button {
+    /* Le Pad lui-même */
+    width: 60px; 
+    height: 60px;
+    background-color: #555;
+    border: none;
+    border-radius: 4px;
+    box-shadow: 0 5px 0 #333; /* Effet 3D */
+    color: white;
+    font-size: 1.2em;
+    font-weight: 700;
+    transition: background-color 0.1s, box-shadow 0.1s, transform 0.1s;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+}
+
+/* Pad au survol */
+#multi-buttons button:hover:not([disabled]) {
+    background-color: #777;
+}
+
+/* Pad enfoncé (au clic ou sélectionné) */
+#multi-buttons button:active,
+#multi-buttons button[style*="background: rgb(76, 175, 80)"] { /* Couleur verte pour l'édition/actif */
+    background-color: #4CAF50 !important;
+    box-shadow: 0 2px 0 #2e7d32;
+    transform: translateY(3px); /* Effet d'enfoncement */
+}
+
+/* Pad désactivé (pas de son chargé) */
+#multi-buttons button[disabled] {
+    background-color: #333;
+    box-shadow: none;
+    cursor: not-allowed;
+    color: #666;
+    transform: none;
+}
+
+/* Étiquette (nom du son) sous le pad */
+#multi-buttons small {
+    display: block;
+    text-align: center;
+    color: #ccc;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 60px; /* Assure que le texte ne déborde pas */
+    font-size: 0.75em;
+}
+
+/* --- 5. Conteneur WAM Sampler --- */
+#wam-sampler-container {
+    padding: 15px;
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    margin-top: 40px;
+    border: 1px solid #333;
 }

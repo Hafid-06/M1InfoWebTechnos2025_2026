@@ -1,7 +1,8 @@
-import express from "express";  
+import express from "express";
 import fs from "node:fs/promises";
 import path from "path";
 import { fileURLToPath } from "node:url";
+import cors from "cors"; 
 
 const app = express();
 
@@ -28,32 +29,36 @@ export const DATA_DIR = process.env.DATA_DIR
 
   console.log("DATA_DIR = " + DATA_DIR)
 
-// We tell express to use the public folder for static files
-app.use(express.static(PUBLIC_DIR));
+// Activation de CORS 
+app.use(cors()); 
+
+// CHANGEMENT CRUCIAL : On sert le sous-dossier 'presets' qui contient les kits.
+// Express va chercher dans PUBLIC_DIR/presets, mais les URLs dans le navigateur 
+// n'auront pas besoin du /presets.
+
+// express.static(chemin, { options })
+app.use(express.static(PUBLIC_DIR)); // Pour servir le reste du dossier public
+
+// Cette ligne ajoute une nouvelle racine pour les fichiers. 
+// Quand le navigateur demande /808/kick.wav, Express cherche dans le dossier data/presets.
+// Si le dossier 'presets' contient les sous-dossiers '808', 'basic-kit', etc.
+// ET que 'DATA_DIR' pointe vers ce dossier :
+app.use(express.static(DATA_DIR)); // <--- NOUVEAU: Ajoute le dossier 'presets' comme racine statique
 
 // let's define a route for the preset files
 app.get("/api/presets", async (req, res) => {
-  // 1 we want to return the array of preset JSON files
+// ... (le reste de la fonction est inchangé, elle est correcte)
     const files = await fs.readdir(DATA_DIR);
-    // 2We want only the .json files. Let's filter the array
     const jsonFiles = files.filter(file => file.endsWith(".json"));
 
     let promiseArray = [];
 
-    // 3 We want to return an array of objects 
-    // corresponding to each JSON file content
     for (let i = 0; i < jsonFiles.length; i++) {
-        // Read the file content. We need first compute the
-        // full path of the file
-        //const filePath = PRESET_DIR + "/" + jsonFiles[i];
         const filePath = path.join(DATA_DIR, jsonFiles[i]);
-        // Read the file content
         const promise = JSON.parse(await fs.readFile(filePath, "utf8"))
         promiseArray.push(promise);
     }
 
-    // Execute a set of promises and wait for all to be completed
-    // before returning the result
     const result = await Promise.all(promiseArray);
     res.json(result);
 });

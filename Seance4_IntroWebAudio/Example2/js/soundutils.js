@@ -1,34 +1,44 @@
-async function loadAndDecodeSound(url, ctx) {
-   const response = await fetch(url);
-   const sound = await response.arrayBuffer();
+// soundutils.js : Corrigé pour vérifier la réponse HTTP avant de décoder.
 
-    console.log("Sound loaded as arrayBuffer    ");
-    
+async function loadAndDecodeSound(url, ctx) {
+    const response = await fetch(url);
+
+    // NOUVEAU : Vérification de la réponse HTTP. 
+    // Si le statut n'est pas 200 OK (ex: 404, 500), on lève une erreur.
+    if (!response.ok) {
+        // Le corps de la réponse sera ignoré, on lève juste l'erreur.
+        throw new Error(`HTTP Error status: ${response.status} for URL: ${url}`);
+    }
+
+    const sound = await response.arrayBuffer();
+
+    console.log("Sound loaded as arrayBuffer");
+
     // Let's decode it. This is also asynchronous
     const decodedSound = await ctx.decodeAudioData(sound);
     console.log("Sound decoded");
 
     return decodedSound;
-  };
+};
 
-  // This function builds the audio graph for playing the sound
-  // In this simple case, it is just a buffer source connected to the destination
-  // (the audio card)
-  // We return the created buffer source node
-  function buildAudioGraph(ctx, buffer) {
+// This function builds the audio graph for playing the sound
+// In this simple case, it is just a buffer source connected to the destination
+// (the audio card)
+// We return the created buffer source node
+function buildAudioGraph(ctx, buffer) {
     let bufferSource = ctx.createBufferSource();
     bufferSource.buffer = buffer;
     bufferSource.connect(ctx.destination);
-    return bufferSource;  
-  }
+    return bufferSource;
+}
 
-  function playSound(ctx, buffer, startTime, endTime) {
+function playSound(ctx, buffer, startTime, endTime) {
     // buffer is the decoded sound...
 
     // some checks as sometimes startTime or endTime can be out of range
     // when dragging the trim bars
-    if(startTime < 0) startTime = 0;
-    if(endTime > buffer.duration) endTime = buffer.duration;
+    if (startTime < 0) startTime = 0;
+    if (endTime > buffer.duration) endTime = buffer.duration;
 
     // The Web Audio API BufferSourceNode instances are one-shot: they can only
     // be started once, so we need to create a new one each time we want to play
@@ -46,6 +56,6 @@ async function loadAndDecodeSound(url, ctx) {
     bufferSource.start(0, startTime, endTime);
 }
 
-  
-  // export the function
-  export { loadAndDecodeSound, playSound };
+
+// export the function
+export { loadAndDecodeSound, playSound };

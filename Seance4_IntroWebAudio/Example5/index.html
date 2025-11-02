@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Sampler (Engine + GUI + Waveform)</title>
+  <link rel="stylesheet" href="./styles.css" />
+    <script>
+    window.PRESETS_API_BASE = "http://localhost:3000";
+  </script>
+  <script type="module" src="./js/main.js"></script>
+</head>
+<body>
+  <h1>Sampler (Engine + GUI + Waveform)</h1>
+  <p>Select a preset and click pads.</p>
+
+  <div class="sampler">
+    <div class="sampler__left">
+      <div class="row">
+        <label>Preset:</label>
+  <select id="presetSelect"></select>
+      </div>
+      <div id="padGrid" class="grid"></div>
+    </div>
+
+    <div class="sampler__right">
+      <div id="currentName" class="title">—</div>
+      <div class="wave-wrap">
+        <canvas id="wave" width="520" height="120"></canvas>
+        <canvas id="overlay" width="520" height="120"></canvas>
+      </div>
+      <div class="play-progress">
+        <div id="playProgress" class="play-progress__bar" style="width:0%"></div>
+      </div>
+      
+      <div class="row">
+        <button id="btnPlay" disabled>Play</button>
+        <button id="btnStop" disabled>Stop</button>
+        <span id="status" class="status">Idle</span>
+      </div>
+      
+      <div class="row" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+        <h3 style="margin:0 10px 0 0; font-weight: 600; font-size: 16px;">Séquenceur</h3>
+        <button id="btnRecordStart" disabled style="background-color: #ff6b6b; color: white;">REC START</button>
+        <button id="btnRecordStop" disabled>REC STOP</button>
+      </div>
+
+      <div class="sequence-list-wrap" style="margin-top: 10px;">
+        <ul id="sequenceList" style="list-style: none; padding: 0;">
+          </ul>
+      </div>
+      <div id="report" class="report"></div>
+    </div>
+  </div>
+</body>
+</html>
