@@ -18,6 +18,7 @@ Ce projet consiste en la réalisation d’un sampler audio en JavaScript, permet
 L’application s’appuie sur le Web Audio API pour le traitement du son et sur le Canvas API pour l’affichage des formes d’onde.
 
 # Structure du projet
+```
 └── Example5/
       ├── index.html
       ├── styles.css
@@ -27,6 +28,7 @@ L’application s’appuie sur le Web Audio API pour le traitement du son et sur
            ├── SamplerGUI.js
            ├── WaveformCanvas.js
            └── PresetService.js
+```
 
 
 # Fonctionnalités principales
