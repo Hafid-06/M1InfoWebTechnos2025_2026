@@ -56,8 +56,6 @@ L’application s’appuie sur le Web Audio API pour le traitement du son et sur
 - **`js/PresetService.js`**  
   Communique avec une API externe pour charger les presets disponibles et formater les données pour le sampler.
 
-# Aperçu
-
 # Technologies utilisées
 - JavaScript
 - Web Audio API
