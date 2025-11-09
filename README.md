@@ -13,7 +13,7 @@ Ce projet a été réalisé dans le cadre du module Web (M1 Informatique) coordo
 L’objectif était de manipuler le **Web Audio API** pour créer un sampler audio fonctionnel et interactif.
 
 # Travail effectué :
-Notre travail se trouve dans le dossier `M1InfoWebTechnos2025_2026/Seance4_IntroWebAudio/Example5/js`
+⚠️ Notre travail se trouve dans le dossier `M1InfoWebTechnos2025_2026/Seance4_IntroWebAudio/Example5/js`
 
 Ce projet consiste en la réalisation d’un sampler audio en JavaScript, permettant de charger, lire, visualiser et manipuler des sons via une interface graphique web.
 L’application s’appuie sur le Web Audio API pour le traitement du son et sur le Canvas API pour l’affichage des formes d’onde.
