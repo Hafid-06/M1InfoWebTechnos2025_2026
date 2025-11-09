@@ -6,7 +6,7 @@
 - Aller dans le dossier le dossier : `M1InfoWebTechnos2025_2026/Seance2/ExampleRESTEndPointCorrige` sur le Terminal
 - Lancer la commande `npm run start`
 - Si une erreur de type `[ERR_MODULE_NOT_FOUND]` apparaît, c'est sûrement à cause du package **express** manquant. Il suffit d'écrire sur le Terminal `npm install express` puis de relancer la commande `npm run start`
-- Enfin, depuis `index.html`, du dossier `M1InfoWebTechnos2025_2026/Seance4_IntroWebAudio/Example5` faire un clic droit -> `Open with Live Server`
+- Enfin, depuis le fichier `M1InfoWebTechnos2025_2026/Seance4_IntroWebAudio/Example5/index.html` faire un clic droit -> `Open with Live Server`
 
 # Contexte du projet
 Ce projet a été réalisé dans le cadre du module Web (M1 Informatique) coordonnée par **M.Buffa**.
