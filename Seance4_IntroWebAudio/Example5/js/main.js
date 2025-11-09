@@ -14,7 +14,7 @@ const els = {
   currentName: document.getElementById('currentName'),
   btnPlay: document.getElementById('btnPlay'),
   btnStop: document.getElementById('btnStop'),
-  // NOUVELLES RÉFÉRENCES
+  // NOUVELLES RÉFÉRENCES DU SÉQUENCEUR
   btnRecordStart: document.getElementById('btnRecordStart'),
   btnRecordStop: document.getElementById('btnRecordStop'),
   sequenceList: document.getElementById('sequenceList'),

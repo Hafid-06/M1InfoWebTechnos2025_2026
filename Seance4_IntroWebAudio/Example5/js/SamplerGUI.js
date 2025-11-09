@@ -22,6 +22,10 @@ export class SamplerGUI {
 
   attachSequencer(seq) {
     this.sequencer = seq;
+    // NOUVEAU : Demander au Séquenceur de dessiner sa liste après l'attachement
+    if (this.sequencer && typeof this.sequencer.renderSequences === 'function') {
+        this.sequencer.renderSequences();
+    }
   }
 
   // called by main to refresh REC buttons; proxy to sequencer if attached
@@ -127,6 +131,12 @@ export class SamplerGUI {
     if (this._playPreviewTimer) { clearTimeout(this._playPreviewTimer); this._playPreviewTimer = null; }
     if (this.currentSource) { try { this.currentSource.stop(); } catch {} this.currentSource = null; }
     if (this._rafId) { cancelAnimationFrame(this._rafId); this._rafId = null; }
+    
+    // NOUVEAU : Arrêter la lecture de séquence
+    if (this.sequencer && typeof this.sequencer.stopPlayback === 'function') {
+        this.sequencer.stopPlayback();
+    }
+    
     this.waveform.clearPlayhead(); if (this.els.playProgress) this.els.playProgress.style.width = '0%'; this.els.status.textContent = 'Idle';
   }
 }
