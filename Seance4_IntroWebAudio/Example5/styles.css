@@ -1,0 +1,206 @@
+/* ========== Neon Night Theme (exact look des screenshots) ========== */
+:root{
+  --bg1:#0f172a;
+  --bg2:#0b1324;
+  --ink:#0b1020;
+  --panel:#0c1321cc;       /* glass panel */
+  --panel-border:#15324a;
+  --cyan:#19b4ff;
+  --cyan-soft:#0ea5e9;
+  --cyan-2:#22d3ee;
+  --text:#e6f1ff;
+  --muted:#9bb3c9;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+  -webkit-font-smoothing:antialiased;
+  background:
+    radial-gradient(1200px 600px at 20% -10%, #111827, #0b1020 60%, #050914);
+  color:var(--text);
+}
+
+/* ---------- Page header ---------- */
+h1{
+  margin:24px auto 6px;
+  text-align:center;
+  font-size:clamp(22px, 3.2vw, 38px);
+  font-weight:850;
+  letter-spacing:.2px;
+}
+p{
+  margin:0 auto 18px;
+  text-align:center;
+  color:#c8d6e6cc;
+}
+
+/* ---------- Layout ---------- */
+.sampler{
+  max-width:1050px;
+  margin:0 auto 40px;
+  padding:24px;
+  display:grid;
+  grid-template-columns: 1.1fr .9fr;
+  gap:26px;
+}
+@media (max-width: 980px){
+  .sampler{ grid-template-columns:1fr; }
+}
+
+.sampler__left,
+.sampler__right{
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-radius:18px;
+  padding:22px;
+  backdrop-filter: blur(10px);
+  box-shadow:0 18px 50px #0008;
+}
+
+/* ---------- Left: Preset + Pads ---------- */
+.row{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  justify-content:center;
+  margin:2px auto 18px;
+}
+
+label{ font-weight:700; color:var(--text); opacity:.95 }
+
+select{
+  appearance:none;
+  background:#0e2436;
+  color:var(--text);
+  border:1px solid var(--cyan);
+  border-radius:12px;
+  padding:10px 14px;
+  min-width:120px;
+  font-weight:700;
+  outline:none;
+  box-shadow:0 0 0 2px #0ea5e944 inset;
+}
+select:focus{ box-shadow:0 0 0 2px #1cc9ff inset; }
+
+/* Pads grid : 3 rangées × 4 colonnes, centrée, pads plus petits */
+.grid{
+  display:grid;
+  grid-template-columns: repeat(4, 120px);
+  gap:18px;
+  justify-content:center;
+}
+@media (max-width:700px){
+  .grid{ grid-template-columns: repeat(3, 110px); }
+}
+.grid button{
+  width:120px; height:120px;
+  border-radius:20px;
+  background:linear-gradient(160deg, #061724, #0b1f31);
+  border:1px solid var(--cyan);
+  color:var(--text);
+  font-weight:800;
+  font-size:18px;
+  cursor:pointer;
+  box-shadow:
+    0 0 0 2px #0ea5e944 inset,
+    0 12px 22px #0009;
+  transition:transform .12s, box-shadow .12s, filter .12s;
+}
+.grid button:active,
+.grid button.playing{
+  transform:translateY(2px);
+  box-shadow:0 0 0 2px #22d3ee inset, 0 12px 22px #0009;
+  filter:saturate(1.15);
+}
+
+/* ---------- Right: Waveform Card, progress + controls ---------- */
+.title{
+  font-weight:800;
+  letter-spacing:.2px;
+  margin-bottom:10px;
+  color:#e6f1ff;
+  opacity:.95;
+}
+.wave-wrap{
+  position:relative;
+  border-radius:16px;
+  overflow:hidden;
+  border:1px solid #1f2f40;
+  background:#0b0f15;
+  box-shadow: inset 0 -6px 12px #0006, 0 8px 22px #0008;
+}
+.wave-wrap canvas{
+  display:block;
+  width:100%;
+  height:190px; /* hauteur visuelle */
+}
+
+/* On s’assure que l’overlay capte les interactions (trimbar) */
+#wave{ position:relative; z-index:1 }
+#overlay{ position:absolute; left:0; top:0; z-index:2; pointer-events:auto }
+
+/* Barre de progression liée à la waveform */
+.play-progress{
+  height:8px;
+  background:#132535;
+  border-radius:8px;
+  margin:12px 4px 4px;
+  overflow:hidden;
+  border:1px solid #17354a;
+}
+.play-progress__bar{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg, #19b4ff, #22d3ee);
+  box-shadow:0 0 10px #19b4ff99;
+  transition: width .05s linear;
+}
+
+/* Trim bar (poignée orange “in”) dessinée par overlay (ou en div optionnelle) */
+.trim-handle{
+  position:absolute;
+  top:10px; bottom:10px;
+  width:4px;
+  left:0;
+  background:#f59e0b;
+  box-shadow:0 0 12px #f59e0bcc;
+  border-radius:2px;
+  cursor:ew-resize;
+  z-index:3;
+  pointer-events:auto;
+}
+
+/* Controls */
+.status{ margin-left:auto; color:var(--muted); font-weight:700 }
+.sampler__right .row{ justify-content:flex-start }
+
+button{
+  border:none;
+  border-radius:14px;
+  padding:12px 18px;
+  font-weight:800;
+  cursor:pointer;
+}
+#btnPlay{
+  background:var(--cyan-soft);
+  color:#041018;
+  box-shadow:0 8px 20px #0ea5e966;
+}
+#btnStop{
+  background:#13283a;
+  color:#cfe7ff;
+}
+button:disabled{
+  opacity:.55; filter:grayscale(.2); cursor:not-allowed;
+}
+
+/* Report / infos */
+.report{ margin-top:10px; color:#9bb3c9; font-size:13px }
+
+/* Center content on large desktops too */
+@media (min-width:1280px){
+  .sampler{ max-width:1100px }
+}
