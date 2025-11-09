@@ -5,7 +5,8 @@
 # Pour lancer notre Sampler :
 - Aller dans le dossier le dossier : `M1InfoWebTechnos2025_2026/Seance2/ExampleRESTEndPointCorrige` sur le Terminal
 - Lancer la commande `npm run start`
-- Puis, depuis `index.html`, du dossier `M1InfoWebTechnos2025_2026/Seance4_IntroWebAudio/Example5` faire un clic droit -> `Open with Live Server`
+- Si une erreur de type `[ERR_MODULE_NOT_FOUND]` apparaît, c'est sûrement à cause du package **express** manquant. Il suffit d'écrire `npm install express` puis de relancer la commande `npm run start`
+- Enfin, depuis `index.html`, du dossier `M1InfoWebTechnos2025_2026/Seance4_IntroWebAudio/Example5` faire un clic droit -> `Open with Live Server`
 
 # Contexte du projet
 Ce projet a été réalisé dans le cadre du module Web (M1 Informatique) coordonnée par M.Buffa.
@@ -27,9 +28,9 @@ L’application s’appuie sur le Web Audio API pour le traitement du son et sur
            ├── SamplerEngine.js
            ├── SamplerGUI.js
            ├── WaveformCanvas.js
-           └── PresetService.js
+           ├── PresetService.js
+           └── Sequencer.js
 ```
-
 
 # Fonctionnalités principales
 - Lecture, pause et arrêt de sons chargés.
@@ -48,13 +49,16 @@ L’application s’appuie sur le Web Audio API pour le traitement du son et sur
   Moteur audio principal. Gère le chargement, la lecture, la découpe et l’enregistrement des sons via le Web Audio API.
 
 - **`js/SamplerGUI.js`**  
-  Interface utilisateur du sampler. Relie les actions de l’utilisateur au moteur audio : lecture, enregistrement, gestion des pads et export `.wav`.
+  Interface utilisateur du sampler. Gère l'état des pads, l'affichage de la waveform, la gestion des trimbars, et sert d'interface entre le Sequencer et l'Engine.
 
 - **`js/WaveformCanvas.js`**  
   Affiche la forme d’onde du son sur un canvas et permet la découpe via les trimbars.
 
 - **`js/PresetService.js`**  
   Communique avec une API externe pour charger les presets disponibles et formater les données pour le sampler.
+
+- **`js/Sequencer.js`**
+  Contrôleur de séquence. Gère la logique d'enregistrement des frappes (`recordHit`), la lecture des séquences enregistrées (`playSequence`), l'affichage de la liste et l'exportation WAV (`downloadSequence`).
 
 # Technologies utilisées
 - JavaScript
