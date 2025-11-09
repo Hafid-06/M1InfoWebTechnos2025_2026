@@ -5,15 +5,15 @@
 # Pour lancer notre Sampler :
 - Aller dans le dossier le dossier : `M1InfoWebTechnos2025_2026/Seance2/ExampleRESTEndPointCorrige` sur le Terminal
 - Lancer la commande `npm run start`
-- Si une erreur de type `[ERR_MODULE_NOT_FOUND]` apparaît, c'est sûrement à cause du package **express** manquant. Il suffit d'écrire `npm install express` puis de relancer la commande `npm run start`
+- Si une erreur de type `[ERR_MODULE_NOT_FOUND]` apparaît, c'est sûrement à cause du package **express** manquant. Il suffit d'écrire sur le Terminal `npm install express` puis de relancer la commande `npm run start`
 - Enfin, depuis `index.html`, du dossier `M1InfoWebTechnos2025_2026/Seance4_IntroWebAudio/Example5` faire un clic droit -> `Open with Live Server`
 
 # Contexte du projet
-Ce projet a été réalisé dans le cadre du module Web (M1 Informatique) coordonnée par M.Buffa.
+Ce projet a été réalisé dans le cadre du module Web (M1 Informatique) coordonnée par **M.Buffa**.
 L’objectif était de manipuler le **Web Audio API** pour créer un sampler audio fonctionnel et interactif.
 
 # Travail effectué :
-⚠️ Notre travail se trouve dans le dossier `M1InfoWebTechnos2025_2026/Seance4_IntroWebAudio/Example5/js`
+⚠️ Notre travail se trouve dans le dossier `M1InfoWebTechnos2025_2026/Seance4_IntroWebAudio/Example5`
 
 Ce projet consiste en la réalisation d’un sampler audio en JavaScript, permettant de charger, lire, visualiser et manipuler des sons via une interface graphique web.
 L’application s’appuie sur le Web Audio API pour le traitement du son et sur le Canvas API pour l’affichage des formes d’onde.
